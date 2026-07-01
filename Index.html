@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¿Quién sabe más de informática? · Curso FCOI02</title>
+<style>
+  :root {
+    --blue:   #1C5D8C;
+    --teal:   #0F6E56;
+    --coral:  #C0532D;
+    --green:  #2E7D52;
+    --red:    #B91C1C;
+    --amber:  #92400E;
+    --bg:     #F4F1EC;
+    --card:   #FFFFFF;
+    --border: #D3D1C7;
+    --text:   #1A1A1A;
+    --muted:  #5B6472;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px 48px;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 680px;
+  }
+
+  /* HEADER */
+  #app-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  #app-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  #app-header p {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* STATS */
+  #stats {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+  .stat-pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .stat-pill strong {
+    color: var(--text);
+    font-size: 15px;
+  }
+
+  /* LIFELINES */
+  #lifelines {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .ll-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text);
+    transition: background .12s, border-color .12s;
+    font-family: inherit;
+  }
+  .ll-btn:hover:not(:disabled) { background: var(--bg); border-color: var(--blue); }
+  .ll-btn:disabled { opacity: .35; cursor: default; }
+
+  /* PROGRESS BAR */
+  #progress {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+  .pbar {
+    flex: 1;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--border);
+  }
+  .pbar.done-ok  { background: var(--green); }
+  .pbar.done-bad { background: var(--red); }
+  .pbar.current  { background: var(--blue); }
+
+  /* TIMER */
+  #timer-wrap {
+    height: 7px;
+    background: var(--border);
+    border-radius: 4px;
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+  #timer-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .1s linear, background .3s;
+    background: var(--blue);
+  }
+
+  /* CARD */
+  #card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 14px;
+  }
+  #level-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  #question {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--text);
+    margin-bottom: 20px;
+    min-height: 56px;
+  }
+  #options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .opt {
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.4;
+    transition: background .12s, border-color .12s;
+  }
+  .opt:hover:not(:disabled) {
+    background: #EAF3FB;
+    border-color: var(--blue);
+  }
+  .opt.correct {
+    background: #DCEFE7;
+    border-color: var(--teal);
+    color: #064E3B;
+    font-weight: 600;
+  }
+  .opt.wrong {
+    background: #FEE2E2;
+    border-color: var(--red);
+    color: #7F1D1D;
+  }
+  .opt:disabled { cursor: default; }
+
+  /* FEEDBACK */
+  #feedback {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    min-height: 50px;
+    margin-bottom: 0;
+  }
+
+  /* END SCREEN */
+  #end {
+    display: none;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 36px 24px;
+    text-align: center;
+  }
+  #end-medal { font-size: 56px; margin-bottom: 12px; }
+  #end h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+  #end p { font-size: 15px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+  #end-scores {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .end-stat {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .end-stat strong { display: block; font-size: 24px; color: var(--text); font-weight: 700; }
+  .btn-play {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 12px 28px;
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+    margin: 0 6px 10px;
+  }
+  .btn-play:hover { background: #174f7a; }
+  .btn-secondary {
+    background: var(--card);
+    color: var(--blue);
+    border: 1.5px solid var(--blue);
+    border-radius: var(--radius);
+    padding: 11px 24px;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .12s;
+    margin: 0 6px 10px;
+  }
+  .btn-secondary:hover { background: #EAF3FB; }
+
+  /* RANKING */
+  #ranking-section {
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+  #ranking-section h3 { font-size: 14px; color: var(--muted); margin-bottom: 10px; }
+  .rank-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .rank-row:nth-child(odd) { background: var(--bg); }
+  .rank-row .rank-name { font-weight: 600; }
+  .rank-row .rank-pts { color: var(--blue); font-weight: 700; }
+
+  /* NAME SCREEN */
+  #name-screen {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 36px 24px;
+    text-align: center;
+  }
+  #name-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  #name-screen p { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+  #name-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-family: inherit;
+    margin-bottom: 16px;
+    outline: none;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #name-input:focus { border-color: var(--blue); }
+
+  @media (max-width: 480px) {
+    #options { grid-template-columns: 1fr; }
+    #stats { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="app-header">
+    <h1>🖥️ ¿Quién sabe más de informática?</h1>
+    <p>Curso FCOI02 · Alfabetización informática: informática e Internet</p>
+  </div>
+
+  <!-- PANTALLA DE NOMBRE -->
+  <div id="name-screen">
+    <div style="font-size:48px;margin-bottom:12px">🎮</div>
+    <h2>¡Bienvenido/a al concurso!</h2>
+    <p>12 preguntas sobre todo lo que hemos aprendido en el curso.<br>Tienes 3 comodines: ¡úsalos bien!</p>
+    <input id="name-input" type="text" placeholder="Escribe tu nombre..." maxlength="30">
+    <br>
+    <button class="btn-play" onclick="beginGame()">¡Empezar! 🚀</button>
+  </div>
+
+  <!-- JUEGO -->
+  <div id="game-screen" style="display:none">
+    <div id="stats">
+      <div class="stat-pill">Puntos <strong id="pts">0</strong></div>
+      <div class="stat-pill">Racha <strong id="streak">0🔥</strong></div>
+    </div>
+    <div id="lifelines">
+      <button class="ll-btn" id="ll50"    onclick="useFiftyFifty()">🔀 50/50</button>
+      <button class="ll-btn" id="llskip"  onclick="useSkip()">⏭ Saltar</button>
+      <button class="ll-btn" id="lltime"  onclick="useTime()">⏱ +10 seg</button>
+    </div>
+    <div id="progress"></div>
+    <div id="timer-wrap"><div id="timer-bar" style="width:100%"></div></div>
+    <div id="card">
+      <div id="level-label"></div>
+      <div id="question"></div>
+      <div id="options"></div>
+    </div>
+    <div id="feedback"></div>
+  </div>
+
+  <!-- PANTALLA FINAL -->
+  <div id="end">
+    <div id="end-medal"></div>
+    <h2 id="end-title"></h2>
+    <p id="end-msg"></p>
+    <div id="end-scores">
+      <div class="end-stat"><strong id="end-pts">0</strong>puntos totales</div>
+      <div class="end-stat"><strong id="end-correct">0</strong>respuestas correctas</div>
+      <div class="end-stat"><strong id="end-best-streak">0🔥</strong>racha máxima</div>
+    </div>
+    <button class="btn-play"      onclick="restartGame()">🔄 Volver a jugar</button>
+    <button class="btn-secondary" onclick="changePlayer()">👤 Otro jugador</button>
+    <div id="ranking-section" style="display:none">
+      <h3>🏅 Marcador de la sesión</h3>
+      <div id="ranking-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ALL_QUESTIONS = [
+  {q:"¿Cómo se llaman las partes físicas del ordenador: pantalla, teclado, ratón?",
+   opts:["Software","Hardware","Sistema operativo","Firmware"], ans:1,
+   level:"Fácil", tip:"Hardware viene del inglés 'hard' (duro) porque se puede tocar físicamente."},
+
+  {q:"¿Qué hace el sistema operativo?",
+   opts:["Edita fotos","Gestiona los recursos del ordenador","Navega por Internet","Reproduce música"], ans:1,
+   level:"Fácil", tip:"Sin sistema operativo el ordenador no arranca. Windows y Linux son ejemplos."},
+
+  {q:"¿Qué extensión tienen los archivos de fotografías en Internet?",
+   opts:[".docx",".exe",".jpg",".mp3"], ans:2,
+   level:"Fácil", tip:"JPG comprime las fotos para que ocupen menos espacio sin perder mucha calidad."},
+
+  {q:"¿Qué operación prepara un disco para poder guardar información en él?",
+   opts:["Copiar","Comprimir","Borrar","Formatear"], ans:3,
+   level:"Fácil", tip:"Formatear borra todo y prepara el sistema de archivos del disco."},
+
+  {q:"¿Para qué sirve una carpeta en el ordenador?",
+   opts:["Para conectarse a Internet","Para organizar archivos relacionados en un mismo lugar","Para editar vídeos","Para enviar correos"], ans:1,
+   level:"Fácil", tip:"Las carpetas son como cajones: agrupas dentro los archivos que pertenecen al mismo tema."},
+
+  {q:"¿Cuál de estos es un periférico de salida?",
+   opts:["El teclado","El ratón","La impresora","El micrófono"], ans:2,
+   level:"Fácil", tip:"Los periféricos de salida muestran o entregan información al usuario: pantalla, impresora, altavoces."},
+
+  {q:"¿Qué extensión indica que un archivo es un programa ejecutable?",
+   opts:[".jpg",".mp3",".docx",".exe"], ans:3,
+   level:"Fácil", tip:".exe viene de 'executable'. Abre programas instalables. Descárgalos solo de fuentes fiables."},
+
+  {q:"¿Qué es Internet?",
+   opts:["Un programa del ordenador","Un tipo de antivirus","Una red mundial de ordenadores interconectados","Un sistema operativo"], ans:2,
+   level:"Media", tip:"Internet conecta millones de dispositivos en todo el mundo mediante protocolos comunes."},
+
+  {q:"¿Cuál de estos es un navegador de Internet?",
+   opts:["Microsoft Word","Google Chrome","Windows 10","Photoshop"], ans:1,
+   level:"Media", tip:"Chrome, Firefox, Edge y Safari son navegadores. Word es un procesador de texto."},
+
+  {q:"¿Qué significa 'descargar' (download) un archivo?",
+   opts:["Borrarlo del disco duro","Enviarlo por correo electrónico","Copiarlo desde Internet hasta tu ordenador","Comprimirlo en una carpeta"], ans:2,
+   level:"Media", tip:"Descargar = traer desde Internet a tu ordenador. Subir (upload) = enviar de tu ordenador a Internet."},
+
+  {q:"¿Qué es una URL?",
+   opts:["Un virus informático","La dirección de un recurso concreto en Internet","El nombre de usuario del correo","Un tipo de cable de red"], ans:1,
+   level:"Media", tip:"URL es la dirección web completa, como https://www.google.com. Identifica exactamente dónde está algo en Internet."},
+
+  {q:"¿Qué protocolo usan los ordenadores para comunicarse en Internet?",
+   opts:["FTP","HTTP","TCP/IP","DNS"], ans:2,
+   level:"Media", tip:"TCP/IP es el 'idioma común' de Internet. Todos los dispositivos conectados lo hablan."},
+
+  {q:"¿Qué hace el DNS en Internet?",
+   opts:["Envía correos electrónicos","Traduce nombres de dominio en direcciones numéricas","Filtra virus","Comprime archivos para descargar"], ans:1,
+   level:"Media", tip:"Gracias al DNS puedes escribir 'google.com' en vez de '142.250.185.46'. Es como una guía telefónica de Internet."},
+
+  {q:"¿Para qué sirve el protocolo FTP?",
+   opts:["Ver páginas web","Enviar correos electrónicos","Transferir archivos entre ordenadores","Hacer videollamadas"], ans:2,
+   level:"Media", tip:"FTP (File Transfer Protocol) se usa para subir y bajar archivos en servidores remotos."},
+
+  {q:"¿Qué es la bandeja de entrada del correo electrónico?",
+   opts:["La carpeta de archivos borrados","Donde se guardan los mensajes recibidos","La dirección de correo electrónico","El asunto del mensaje"], ans:1,
+   level:"Media", tip:"La bandeja de entrada es tu 'buzón digital' donde llegan todos los correos que te envían."},
+
+  {q:"¿Qué formato de imagen va mejor para fotografías en Internet?",
+   opts:["GIF","BMP","TXT","JPG"], ans:3,
+   level:"Media", tip:"JPG es ideal para fotos por su buena compresión. GIF es mejor para imágenes sencillas y animaciones."},
+
+  {q:"¿Qué es una Intranet?",
+   opts:["Una red social pública","Una red privada de una empresa que usa tecnología similar a Internet","Un tipo de correo electrónico","Un buscador de Internet"], ans:1,
+   level:"Media", tip:"La intranet funciona como Internet pero solo dentro de una organización. Solo pueden acceder sus miembros."},
+
+  {q:"¿Qué es un foro de debate en Internet?",
+   opts:["Una tienda online","Un espacio donde los usuarios publican mensajes organizados por temas","Un programa de contabilidad","Un tipo de correo masivo"], ans:1,
+   level:"Media", tip:"En un foro se crean hilos de conversación sobre temas concretos. Cualquier usuario puede leer y responder."},
+
+  {q:"¿Qué ocurre cuando la memoria RAM del ordenador se queda sin espacio?",
+   opts:["El ordenador se apaga automáticamente","Se borran los archivos del escritorio","El ordenador se ralentiza o se bloquea","Se pierde la conexión a Internet"], ans:2,
+   level:"Difícil", tip:"La RAM es la 'mesa de trabajo' del ordenador. Si se llena, no caben más tareas y todo va más lento."},
+
+  {q:"¿Qué solución inmediata ayuda cuando el ordenador se bloquea por falta de RAM?",
+   opts:["Apagar el router de Internet","Cerrar los programas y pestañas que no estás usando","Cambiar el fondo de pantalla","Borrar el historial del navegador"], ans:1,
+   level:"Difícil", tip:"Cerrar lo que no usas libera RAM al instante. Si el problema persiste, puede necesitar más memoria física."},
+
+  {q:"¿Qué es la inteligencia artificial (IA) aplicada al uso cotidiano del ordenador?",
+   opts:["Un robot físico que maneja el ordenador","Un sistema que entiende tus peticiones escritas y da respuestas útiles de forma automática","Un antivirus muy avanzado","Un tipo de conexión a Internet de alta velocidad"], ans:1,
+   level:"Difícil", tip:"Herramientas como Gemini o ChatGPT son IA: entienden lo que escribes y responden de forma útil y natural."},
+
+  {q:"¿Cuál de estas tareas puede hacer una IA como Gemini de Google?",
+   opts:["Imprimir documentos directamente en papel","Conectarse sola a Internet sin que hagas nada","Redactar un currículum, una factura o un anuncio a partir de tus indicaciones","Reparar el hardware del ordenador"], ans:2,
+   level:"Difícil", tip:"La IA genera texto: currículums, anuncios, facturas, traducciones... Solo tienes que explicarle lo que necesitas."},
+
+  {q:"¿Cuál es la mejor forma de obtener una buena respuesta de una IA?",
+   opts:["Escribir la petición en mayúsculas para que la entienda mejor","Escribir una petición clara y concreta con los datos que necesita","Repetir la misma pregunta varias veces seguidas","Usar solo palabras sueltas, sin frases completas"], ans:1,
+   level:"Difícil", tip:"Cuanto más claro y concreto sea tu mensaje, mejor será la respuesta. Incluye siempre los datos relevantes."},
+
+  {q:"¿Qué debes comprobar antes de descargar un archivo de Internet?",
+   opts:["Que el antivirus esté desactivado","Que el archivo sea mayor de 1 MB","Que la fuente sea fiable y segura","Que el ordenador esté conectado por cable"], ans:2,
+   level:"Difícil", tip:"Archivos de fuentes desconocidas pueden contener virus. Siempre comprueba quién lo publica antes de descargar."},
+
+  {q:"¿Cuál es una buena práctica al organizar archivos en el ordenador?",
+   opts:["Guardar todo en el escritorio sin ningún orden","Usar nombres claros y agrupar archivos relacionados en carpetas","Borrar todos los archivos cada mes para liberar espacio","Guardar siempre todos los archivos en la misma carpeta"], ans:1,
+   level:"Difícil", tip:"Una buena organización ahorra mucho tiempo. Usa nombres descriptivos y carpetas temáticas."},
+];
+
+let playerName = '';
+let questions, current, score, streak, bestStreak, timer, timeLeft, llUsed, correctCount;
+let ranking = JSON.parse(localStorage.getItem('fcoi02_ranking') || '[]');
+const TIMES = { Fácil: 20, Media: 25, Difícil: 30 };
+
+function shuffle(a) { return [...a].sort(() => Math.random() - .5); }
+
+function beginGame() {
+  const name = document.getElementById('name-input').value.trim();
+  playerName = name || 'Anónimo';
+  document.getElementById('name-screen').style.display = 'none';
+  startGame();
+}
+
+function startGame() {
+  questions = shuffle(ALL_QUESTIONS).slice(0, 12);
+  current = 0; score = 0; streak = 0; bestStreak = 0;
+  correctCount = 0;
+  llUsed = { fifty: false, skip: false, time: false };
+
+  document.getElementById('game-screen').style.display = 'block';
+  document.getElementById('end').style.display = 'none';
+
+  document.getElementById('ll50').disabled = false;
+  document.getElementById('llskip').disabled = false;
+  document.getElementById('lltime').disabled = false;
+
+  updateScore();
+  buildProgress();
+  showQuestion();
+}
+
+function restartGame() {
+  document.getElementById('end').style.display = 'none';
+  startGame();
+}
+
+function changePlayer() {
+  document.getElementById('end').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('name-input').value = '';
+  document.getElementById('name-screen').style.display = 'block';
+}
+
+function buildProgress() {
+  const p = document.getElementById('progress');
+  p.innerHTML = questions.map((_, i) => `<div class="pbar" id="pb${i}"></div>`).join('');
+}
+
+function updateProgress(cls) {
+  const el = document.getElementById('pb' + current);
+  if (el) el.className = 'pbar ' + cls;
+}
+
+function showQuestion() {
+  if (current >= questions.length) { endGame(); return; }
+  const q = questions[current];
+
+  document.getElementById('level-label').textContent =
+    `Pregunta ${current + 1} de ${questions.length}  ·  Nivel: ${q.level}`;
+  document.getElementById('question').textContent = q.q;
+  document.getElementById('feedback').textContent = '';
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = q.opts.map((o, i) =>
+    `<button class="opt" onclick="answer(${i})">${String.fromCharCode(65 + i)}) ${o}</button>`
+  ).join('');
+
+  updateProgress('current');
+  startTimer(q.level);
+}
+
+function startTimer(level) {
+  clearInterval(timer);
+  timeLeft = TIMES[level];
+  const bar = document.getElementById('timer-bar');
+  const total = timeLeft;
+  bar.style.background = '#1C5D8C';
+  bar.style.width = '100%';
+  timer = setInterval(() => {
+    timeLeft -= 0.1;
+    const pct = Math.max(0, timeLeft / total * 100);
+    bar.style.width = pct + '%';
+    if (pct < 30) bar.style.background = '#B91C1C';
+    else if (pct < 55) bar.style.background = '#D97706';
+    if (timeLeft <= 0) { clearInterval(timer); timeOut(); }
+  }, 100);
+}
+
+function timeOut() {
+  disableOpts();
+  const q = questions[current];
+  markAnswer(q.ans, 'correct');
+  document.getElementById('feedback').textContent =
+    '⏰ Tiempo agotado. La respuesta correcta era: ' + String.fromCharCode(65 + q.ans) + '. ' + q.tip;
+  streak = 0; updateScore();
+  updateProgress('done-bad');
+  setTimeout(() => { current++; showQuestion(); }, 2800);
+}
+
+function answer(i) {
+  clearInterval(timer);
+  disableOpts();
+  const q = questions[current];
+  if (i === q.ans) {
+    markAnswer(i, 'correct');
+    const bonus = Math.round(timeLeft) * 2;
+    const streakBonus = streak >= 2 ? 10 : 0;
+    score += 10 + bonus + streakBonus;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    correctCount++;
+    let msg = `✅ ¡Correcto! +${10 + bonus} puntos`;
+    if (streakBonus) msg += ` · Racha ×${streak} +${streakBonus} bonus 🔥`;
+    document.getElementById('feedback').textContent = msg + ' — ' + q.tip;
+    updateProgress('done-ok');
+  } else {
+    markAnswer(i, 'wrong');
+    markAnswer(q.ans, 'correct');
+    score = Math.max(0, score - 5);
+    streak = 0;
+    document.getElementById('feedback').textContent =
+      `❌ No era esa. La correcta es ${String.fromCharCode(65 + q.ans)}. ${q.tip}`;
+    updateProgress('done-bad');
+  }
+  updateScore();
+  setTimeout(() => { current++; showQuestion(); }, 2900);
+}
+
+function markAnswer(i, cls) {
+  document.querySelectorAll('.opt')[i]?.classList.add(cls);
+}
+
+function disableOpts() {
+  document.querySelectorAll('.opt').forEach(b => b.disabled = true);
+}
+
+function updateScore() {
+  document.getElementById('pts').textContent = score;
+  document.getElementById('streak').textContent = streak + '🔥';
+}
+
+function useFiftyFifty() {
+  if (llUsed.fifty) return;
+  llUsed.fifty = true;
+  document.getElementById('ll50').disabled = true;
+  const q = questions[current];
+  const opts = document.querySelectorAll('.opt');
+  let removed = 0;
+  for (let i = 0; i < opts.length && removed < 2; i++) {
+    if (i !== q.ans) { opts[i].disabled = true; opts[i].style.opacity = '0.2'; removed++; }
+  }
+}
+
+function useSkip() {
+  if (llUsed.skip) return;
+  llUsed.skip = true;
+  document.getElementById('llskip').disabled = true;
+  clearInterval(timer);
+  document.getElementById('feedback').textContent = '⏭ Pregunta saltada sin penalización.';
+  updateProgress('done-bad');
+  setTimeout(() => { current++; showQuestion(); }, 900);
+}
+
+function useTime() {
+  if (llUsed.time) return;
+  llUsed.time = true;
+  document.getElementById('lltime').disabled = true;
+  timeLeft = Math.min(timeLeft + 10, TIMES[questions[current].level]);
+}
+
+function saveToRanking() {
+  ranking.push({ name: playerName, score, correct: correctCount, date: new Date().toLocaleDateString('es-ES') });
+  ranking.sort((a, b) => b.score - a.score);
+  ranking = ranking.slice(0, 10);
+  try { localStorage.setItem('fcoi02_ranking', JSON.stringify(ranking)); } catch(e) {}
+}
+
+function renderRanking() {
+  if (!ranking.length) return;
+  const section = document.getElementById('ranking-section');
+  const list = document.getElementById('ranking-list');
+  section.style.display = 'block';
+  const medals = ['🥇', '🥈', '🥉'];
+  list.innerHTML = ranking.map((r, i) =>
+    `<div class="rank-row">
+      <span>${medals[i] || (i + 1) + '.'} <span class="rank-name">${r.name}</span></span>
+      <span class="rank-pts">${r.score} pts · ${r.correct}/12 ✓</span>
+    </div>`
+  ).join('');
+}
+
+function endGame() {
+  clearInterval(timer);
+  document.getElementById('timer-bar').style.width = '0%';
+  document.getElementById('game-screen').style.display = 'none';
+
+  saveToRanking();
+
+  const pct = correctCount / questions.length;
+  let medal, title, msg;
+  if (pct >= 0.92) {
+    medal = '🏆'; title = '¡Campeón/a del aula!';
+    msg = `${playerName}, has conseguido ${correctCount} de ${questions.length} respuestas correctas. ¡Dominas la informática!`;
+  } else if (pct >= 0.75) {
+    medal = '🥇'; title = '¡Muy bien!';
+    msg = `${playerName}, ${correctCount} de ${questions.length} correctas. Solo unos detalles por repasar.`;
+  } else if (pct >= 0.58) {
+    medal = '🥈'; title = '¡Buen intento!';
+    msg = `${playerName}, ${correctCount} de ${questions.length} correctas. Con un poco más de práctica lo clavás.`;
+  } else {
+    medal = '🎯'; title = '¡A seguir practicando!';
+    msg = `${playerName}, ${correctCount} de ${questions.length} correctas. Repasa los apuntes y vuelve a intentarlo.`;
+  }
+
+  document.getElementById('end-medal').textContent = medal;
+  document.getElementById('end-title').textContent = title;
+  document.getElementById('end-msg').textContent = msg;
+  document.getElementById('end-pts').textContent = score;
+  document.getElementById('end-correct').textContent = correctCount + '/12';
+  document.getElementById('end-best-streak').textContent = bestStreak + '🔥';
+  document.getElementById('end').style.display = 'block';
+
+  renderRanking();
+}
+
+document.getElementById('name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') beginGame();
+});
+</script>
+</body>
+</html>
